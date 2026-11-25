@@ -1,0 +1,16 @@
+{
+  "short_name": "KMTMS",
+  "name": "KM Transport Management System",
+  "icons": [
+    {
+      "src": "/branding/kmt-badge-logo.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/driver/dashboard",
+  "background_color": "#F8FAFC",
+  "theme_color": "#0B2545",
+  "display": "standalone",
+  "orientation": "portrait"
+}
