@@ -109,12 +109,11 @@ export const AdminDashboard: React.FC = () => {
   const pendingSuspensionsCount = suspensions.filter((s) => s.status === 'pending').length;
 
   // Chart Data: Expected vs Verified
-  const collectionTrendData = [
-    { name: 'Week 44', expected: 12500, verified: 12500 },
-    { name: 'Week 45', expected: 14200, verified: 13800 },
-    { name: 'Week 46', expected: 13900, verified: 13900 },
-    { name: 'Week 47', expected: 15400, verified: 11200 }, // Current week
-  ];
+  const collectionTrendData = useMemo(() => {
+    return [
+      { name: 'Current Period', expected: expectedRemittancesTotal, verified: verifiedCollectionsTotal },
+    ];
+  }, [expectedRemittancesTotal, verifiedCollectionsTotal]);
 
   // Chart Data: Driver Status Breakdown
   const driverStatusData = [

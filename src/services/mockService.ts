@@ -2,6 +2,7 @@
 // Persists demonstration state to LocalStorage with fallback to initial data
 
 import {
+  AccountStatus,
   Branch,
   Driver,
   TransportOfficer,
@@ -20,6 +21,8 @@ import {
   OfficerAssignment,
   PaymentMethod,
 } from '../types';
+
+import { apiClient } from './apiClient';
 
 import {
   INITIAL_BRANCHES,
@@ -41,7 +44,7 @@ import {
   INITIAL_OFFICER_ASSIGNMENTS,
 } from './mockData';
 
-const STORAGE_PREFIX = 'kmtms_state_v1_';
+const STORAGE_PREFIX = 'kmtms_db_v2_';
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {
   try {
@@ -77,6 +80,43 @@ class MockService {
   private notificationSettings: NotificationSettings = loadFromStorage('notif_settings', INITIAL_NOTIFICATION_SETTINGS);
   private vehicleAssignments: VehicleAssignment[] = loadFromStorage('veh_assignments', INITIAL_VEHICLE_ASSIGNMENTS);
   private officerAssignments: OfficerAssignment[] = loadFromStorage('off_assignments', INITIAL_OFFICER_ASSIGNMENTS);
+
+  private syncPromise: Promise<void> | null = null;
+
+  constructor() {
+    this.syncWithApi();
+  }
+
+  async syncWithApi(): Promise<void> {
+    if (this.syncPromise) return this.syncPromise;
+    this.syncPromise = (async () => {
+      try {
+        const data = await apiClient.getBootstrapState();
+        if (data) {
+          if (Array.isArray(data.branches)) this.branches = data.branches;
+          if (Array.isArray(data.drivers)) this.drivers = data.drivers;
+          if (Array.isArray(data.officers)) this.officers = data.officers;
+          if (Array.isArray(data.vehicles)) this.vehicles = data.vehicles;
+          if (Array.isArray(data.remittanceConfigs)) this.remittanceConfigs = data.remittanceConfigs;
+          if (Array.isArray(data.obligations)) this.obligations = data.obligations;
+          if (Array.isArray(data.payments)) this.payments = data.payments;
+          if (Array.isArray(data.receipts)) this.receipts = data.receipts;
+          if (Array.isArray(data.suspensions)) this.suspensions = data.suspensions;
+          if (Array.isArray(data.breakdowns)) this.breakdowns = data.breakdowns;
+          if (Array.isArray(data.notifications)) this.notifications = data.notifications;
+          if (Array.isArray(data.auditLogs)) this.auditLogs = data.auditLogs;
+          if (Array.isArray(data.vehicleAssignments)) this.vehicleAssignments = data.vehicleAssignments;
+          if (Array.isArray(data.officerAssignments)) this.officerAssignments = data.officerAssignments;
+          if (data.gatewayConfig) this.gatewayConfig = data.gatewayConfig;
+          if (data.notificationSettings) this.notificationSettings = data.notificationSettings;
+          this.persistAll();
+        }
+      } catch (err) {
+        console.warn('API bootstrap failed, using cached/fallback data:', err);
+      }
+    })();
+    return this.syncPromise;
+  }
 
   // Reset to initial demo data
   resetAllData(): void {
@@ -179,13 +219,22 @@ class MockService {
       role: 'driver',
       status: driverData.status || 'pending_activation',
       branchId: driverData.branchId || 'branch-1',
-      avatarUrl: driverData.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      avatarUrl: driverData.avatarUrl,
       ghanaCardNumber: driverData.ghanaCardNumber || 'GHA-000000000-0',
+      ghanaCardDocUrl: driverData.ghanaCardDocUrl,
       residentialAddress: driverData.residentialAddress || 'Accra, Ghana',
       licenceNumber: driverData.licenceNumber || 'DL-ACC-2026-0000',
+      licenceDocUrl: driverData.licenceDocUrl,
       licenceExpiryDate: driverData.licenceExpiryDate || '2028-12-31',
       emergencyContactName: driverData.emergencyContactName || 'Family Member',
       emergencyContactPhone: driverData.emergencyContactPhone || '+233 24 111 2222',
+      emergencyContactRelationship: driverData.emergencyContactRelationship,
+      emergencyContactTown: driverData.emergencyContactTown,
+      guarantorName: driverData.guarantorName,
+      guarantorGhanaCardNumber: driverData.guarantorGhanaCardNumber,
+      guarantorTown: driverData.guarantorTown,
+      guarantorPhotoUrl: driverData.guarantorPhotoUrl,
+      guarantorGhanaCardDocUrl: driverData.guarantorGhanaCardDocUrl,
       assignedOfficerId: driverData.assignedOfficerId || 'officer-1',
       assignedVehicleId: driverData.assignedVehicleId,
       currentOutstandingBalance: 0,
@@ -195,7 +244,78 @@ class MockService {
     };
     this.drivers.unshift(newDriver);
     saveToStorage('drivers', this.drivers);
+    apiClient.saveDriver(newDriver).catch(() => {});
     return newDriver;
+  }
+
+  deleteDriver(driverId: string): boolean {
+    const idx = this.drivers.findIndex((d) => d.id === driverId);
+    if (idx === -1) return false;
+
+    const driver = this.drivers[idx];
+
+    // If driver had assigned vehicle, unassign it
+    if (driver.assignedVehicleId) {
+      const veh = this.vehicles.find((v) => v.id === driver.assignedVehicleId);
+      if (veh) {
+        veh.currentDriverId = undefined;
+        veh.status = 'available';
+        saveToStorage('vehicles', this.vehicles);
+      }
+    }
+
+    this.drivers.splice(idx, 1);
+    saveToStorage('drivers', this.drivers);
+    apiClient.deleteDriver(driverId).catch(() => {});
+
+    this.addAuditLog({
+      userId: 'admin-1',
+      userName: 'Michael Abordzi',
+      userRole: 'admin',
+      action: 'DRIVER_DELETED',
+      entityType: 'driver',
+      entityId: driver.id,
+      reason: `Driver ${driver.fullName} (${driver.id}) was permanently deleted from the system.`,
+    });
+
+    return true;
+  }
+
+  toggleDriverStatus(driverId: string, forcedStatus?: AccountStatus): Driver | undefined {
+    const driver = this.drivers.find((d) => d.id === driverId);
+    if (!driver) return undefined;
+
+    const previousStatus = driver.status;
+    const newStatus: AccountStatus = forcedStatus || (driver.status === 'active' ? 'inactive' : 'active');
+    driver.status = newStatus;
+
+    // If deactivated and vehicle was assigned, make vehicle available
+    if (newStatus === 'inactive' && driver.assignedVehicleId) {
+      const veh = this.vehicles.find((v) => v.id === driver.assignedVehicleId);
+      if (veh) {
+        veh.currentDriverId = undefined;
+        veh.status = 'available';
+        saveToStorage('vehicles', this.vehicles);
+      }
+      driver.assignedVehicleId = undefined;
+    }
+
+    saveToStorage('drivers', this.drivers);
+    apiClient.updateDriverStatus(driverId, newStatus).catch(() => {});
+
+    this.addAuditLog({
+      userId: 'admin-1',
+      userName: 'Michael Abordzi',
+      userRole: 'admin',
+      action: 'DRIVER_STATUS_CHANGE',
+      entityType: 'driver',
+      entityId: driver.id,
+      previousValue: previousStatus,
+      newValue: newStatus,
+      reason: `Driver ${driver.fullName} status changed from ${previousStatus} to ${newStatus}.`,
+    });
+
+    return driver;
   }
 
   // --- OFFICERS ---
@@ -245,6 +365,63 @@ class MockService {
     return newOfficer;
   }
 
+  deleteOfficer(officerId: string): boolean {
+    const idx = this.officers.findIndex((o) => o.id === officerId);
+    if (idx === -1) return false;
+
+    const officer = this.officers[idx];
+
+    // Unassign supervised drivers from this officer
+    this.drivers.forEach((d) => {
+      if (d.assignedOfficerId === officerId) {
+        d.assignedOfficerId = '';
+      }
+    });
+    saveToStorage('drivers', this.drivers);
+
+    this.officers.splice(idx, 1);
+    saveToStorage('officers', this.officers);
+    apiClient.deleteOfficer(officerId).catch(() => {});
+
+    this.addAuditLog({
+      userId: 'admin-1',
+      userName: 'Michael Abordzi',
+      userRole: 'admin',
+      action: 'OFFICER_DELETED',
+      entityType: 'officer',
+      entityId: officer.id,
+      reason: `Transport Officer ${officer.fullName} (${officer.id}) was permanently deleted from the system.`,
+    });
+
+    return true;
+  }
+
+  toggleOfficerStatus(officerId: string, forcedStatus?: AccountStatus): TransportOfficer | undefined {
+    const officer = this.officers.find((o) => o.id === officerId);
+    if (!officer) return undefined;
+
+    const previousStatus = officer.status;
+    const newStatus: AccountStatus = forcedStatus || (officer.status === 'active' ? 'inactive' : 'active');
+    officer.status = newStatus;
+
+    saveToStorage('officers', this.officers);
+    apiClient.updateOfficerStatus(officerId, newStatus).catch(() => {});
+
+    this.addAuditLog({
+      userId: 'admin-1',
+      userName: 'Michael Abordzi',
+      userRole: 'admin',
+      action: 'OFFICER_STATUS_CHANGE',
+      entityType: 'officer',
+      entityId: officer.id,
+      previousValue: previousStatus,
+      newValue: newStatus,
+      reason: `Transport Officer ${officer.fullName} status changed from ${previousStatus} to ${newStatus}.`,
+    });
+
+    return officer;
+  }
+
   // --- VEHICLES ---
   getVehicles(): Vehicle[] {
     return [...this.vehicles];
@@ -280,6 +457,7 @@ class MockService {
     };
     this.vehicles.unshift(newVeh);
     saveToStorage('vehicles', this.vehicles);
+    apiClient.saveVehicle(newVeh).catch(() => {});
     return newVeh;
   }
 
@@ -329,6 +507,7 @@ class MockService {
     });
 
     this.persistAll();
+    apiClient.reassignVehicle(driverId, newVehicleId, reason, assignedBy).catch(() => {});
     return true;
   }
 
@@ -454,6 +633,7 @@ class MockService {
     });
 
     this.persistAll();
+    apiClient.submitPayment({ driverId, amount, method, submittedBy, transactionReference: txRef, evidenceUrl, submittingOfficerName, notes }).catch(() => {});
     return newPayment;
   }
 
@@ -569,6 +749,7 @@ class MockService {
     });
 
     this.persistAll();
+    apiClient.verifyPayment(paymentId, verifiedBy).catch(() => {});
     return true;
   }
 
@@ -605,6 +786,7 @@ class MockService {
     });
 
     this.persistAll();
+    apiClient.rejectPayment(paymentId, reason, reviewerName).catch(() => {});
     return true;
   }
 
@@ -650,6 +832,7 @@ class MockService {
     });
 
     this.persistAll();
+    apiClient.reversePayment(paymentId, reason, adminName).catch(() => {});
     return true;
   }
 
@@ -690,6 +873,7 @@ class MockService {
     };
     this.suspensions.unshift(newReq);
     saveToStorage('suspensions', this.suspensions);
+    apiClient.submitSuspension(newReq).catch(() => {});
     return newReq;
   }
 
@@ -719,6 +903,7 @@ class MockService {
     }
 
     this.persistAll();
+    apiClient.reviewSuspension(id, approved, comments, approvedStart, approvedEnd, reviewerName).catch(() => {});
     return true;
   }
 
@@ -750,6 +935,7 @@ class MockService {
     };
     this.breakdowns.unshift(newReq);
     saveToStorage('breakdowns', this.breakdowns);
+    apiClient.submitBreakdown(newReq).catch(() => {});
     return newReq;
   }
 
@@ -784,6 +970,7 @@ class MockService {
     }
 
     this.persistAll();
+    apiClient.reviewBreakdown(id, approved, comments, approvedStart, approvedEnd, reviewerName).catch(() => {});
     return true;
   }
 
@@ -798,6 +985,7 @@ class MockService {
     if (notif) {
       notif.read = true;
       saveToStorage('notifications', this.notifications);
+      apiClient.markNotificationRead(id).catch(() => {});
     }
   }
 
@@ -808,6 +996,7 @@ class MockService {
       }
     });
     saveToStorage('notifications', this.notifications);
+    apiClient.markAllNotificationsRead(userId).catch(() => {});
   }
 
   // --- AUDIT LOGS (Append-only) ---
@@ -835,6 +1024,7 @@ class MockService {
   updateGatewayConfig(config: Partial<GatewayConfig>): GatewayConfig {
     this.gatewayConfig = { ...this.gatewayConfig, ...config };
     saveToStorage('gateway_config', this.gatewayConfig);
+    apiClient.updateGatewayConfig(this.gatewayConfig).catch(() => {});
     return this.gatewayConfig;
   }
 
@@ -846,6 +1036,7 @@ class MockService {
   updateNotificationSettings(settings: Partial<NotificationSettings>): NotificationSettings {
     this.notificationSettings = { ...this.notificationSettings, ...settings };
     saveToStorage('notif_settings', this.notificationSettings);
+    apiClient.updateNotificationSettings(this.notificationSettings).catch(() => {});
     return this.notificationSettings;
   }
 

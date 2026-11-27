@@ -214,7 +214,7 @@ export const VehicleManagement: React.FC = () => {
                 className="form-control"
                 value={regNumber}
                 onChange={(e) => setRegNumber(e.target.value)}
-                placeholder="GT 4582-24"
+                placeholder="e.g. GT 1234-24"
                 required
               />
             </div>

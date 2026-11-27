@@ -18,9 +18,9 @@ export const AssignmentsManagement: React.FC = () => {
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
 
   // Reassignment form
-  const [selectedDriverId, setSelectedDriverId] = useState('driver-1');
+  const [selectedDriverId, setSelectedDriverId] = useState('');
   const [newVehicleId, setNewVehicleId] = useState('');
-  const [reassignReason, setReassignReason] = useState('Replacement due to maintenance schedule');
+  const [reassignReason, setReassignReason] = useState('');
 
   const { showToast } = useToast();
   const drivers = mockService.getDrivers();

@@ -7,7 +7,7 @@ import { BarChart3, Download, Printer, Filter, Calendar, FileText, User, Truck, 
 export const ReportsAnalytics: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<string>('financial');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
-  const [selectedDriverId, setSelectedDriverId] = useState<string>('driver-1');
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('');
 
   const { showToast } = useToast();
   const branches = mockService.getBranches();
@@ -26,8 +26,8 @@ export const ReportsAnalytics: React.FC = () => {
   };
 
   const selectedDriver = drivers.find((d) => d.id === selectedDriverId) || drivers[0];
-  const driverObs = obligations.filter((o) => o.driverId === selectedDriver.id);
-  const driverPays = payments.filter((p) => p.driverId === selectedDriver.id && p.status === 'verified');
+  const driverObs = selectedDriver ? obligations.filter((o) => o.driverId === selectedDriver.id) : [];
+  const driverPays = selectedDriver ? payments.filter((p) => p.driverId === selectedDriver.id && p.status === 'verified') : [];
 
   return (
     <div>
@@ -206,15 +206,15 @@ export const ReportsAnalytics: React.FC = () => {
           <div className="p-3 bg-light rounded border mb-4" style={{ fontSize: '0.85rem' }}>
             <div className="row g-2">
               <div className="col-sm-6">
-                <div><strong>Driver:</strong> {selectedDriver.fullName}</div>
-                <div><strong>Ghana Card:</strong> {selectedDriver.ghanaCardNumber}</div>
-                <div><strong>Address:</strong> {selectedDriver.residentialAddress}</div>
+                <div><strong>Driver:</strong> {selectedDriver?.fullName || 'No Driver Selected'}</div>
+                <div><strong>Ghana Card:</strong> {selectedDriver?.ghanaCardNumber || '—'}</div>
+                <div><strong>Address:</strong> {selectedDriver?.residentialAddress || '—'}</div>
               </div>
               <div className="col-sm-6 text-sm-end">
-                <div><strong>Vehicle Reg:</strong> GT 4582-24</div>
-                <div><strong>Branch:</strong> Greater Accra Central Branch</div>
-                <div className="fw-bold mt-1" style={{ color: selectedDriver.currentOutstandingBalance > 0 ? 'var(--danger)' : 'var(--success)' }}>
-                  Current Closing Balance: {formatGHS(selectedDriver.currentOutstandingBalance)}
+                <div><strong>Vehicle Reg:</strong> {selectedDriver?.assignedVehicleId ? (vehicles.find(v => v.id === selectedDriver.assignedVehicleId)?.registrationNumber || 'Unassigned') : 'Unassigned'}</div>
+                <div><strong>Branch:</strong> {selectedDriver?.branchId ? (branches.find(b => b.id === selectedDriver.branchId)?.name || 'Central') : 'Central'}</div>
+                <div className="fw-bold mt-1" style={{ color: (selectedDriver?.currentOutstandingBalance || 0) > 0 ? 'var(--danger)' : 'var(--success)' }}>
+                  Current Closing Balance: {formatGHS(selectedDriver?.currentOutstandingBalance || 0)}
                 </div>
               </div>
             </div>

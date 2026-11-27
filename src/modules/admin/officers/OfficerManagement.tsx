@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { mockService } from '../../../services/mockService';
 import { TransportOfficer, UserPermissions } from '../../../types';
 import { DataTable, Column } from '../../../components/common/DataTable';
+import { ActionMenu } from '../../../components/common/ActionMenu';
 import { Modal } from '../../../components/common/Modal';
 import { useToast } from '../../../context/ToastContext';
 import { formatGHS, formatDate } from '../../../utils/formatters';
-import { UserCheck, Plus, Edit2, ShieldCheck, Users, BarChart3, Phone, Mail } from 'lucide-react';
+import { UserCheck, Plus, Edit2, ShieldCheck, Users, BarChart3, Phone, Mail, Trash2, UserX, AlertTriangle } from 'lucide-react';
 
 export const OfficerManagement: React.FC = () => {
   const [officers, setOfficers] = useState<TransportOfficer[]>(mockService.getOfficers());
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedOfficer, setSelectedOfficer] = useState<TransportOfficer | null>(null);
   const [isPermModalOpen, setIsPermModalOpen] = useState(false);
+  const [officerToDelete, setOfficerToDelete] = useState<TransportOfficer | null>(null);
 
   // Form
   const [fullName, setFullName] = useState('');
@@ -84,6 +86,27 @@ export const OfficerManagement: React.FC = () => {
     }
   };
 
+  const handleToggleOfficerStatus = (officer: TransportOfficer) => {
+    const updated = mockService.toggleOfficerStatus(officer.id);
+    if (updated) {
+      setOfficers(mockService.getOfficers());
+      const actionText = updated.status === 'active' ? 'Activated' : 'Deactivated';
+      showToast('success', `Officer ${actionText}`, `${officer.fullName} status is now ${updated.status}.`);
+    }
+  };
+
+  const handleConfirmDeleteOfficer = () => {
+    if (!officerToDelete) return;
+    const ok = mockService.deleteOfficer(officerToDelete.id);
+    if (ok) {
+      setOfficers(mockService.getOfficers());
+      showToast('success', 'Officer Deleted', `${officerToDelete.fullName} deleted permanently.`);
+    } else {
+      showToast('error', 'Delete Failed', 'Could not delete officer.');
+    }
+    setOfficerToDelete(null);
+  };
+
   const columns: Column<TransportOfficer>[] = [
     {
       header: 'Transport Officer',
@@ -150,34 +173,47 @@ export const OfficerManagement: React.FC = () => {
     {
       header: 'Actions',
       accessor: (row) => (
-        <div className="d-flex align-items-center gap-2">
-          <button
-            onClick={() => {
-              setSelectedOfficer(row);
-              setPermissions({ ...row.permissions });
-              setIsPermModalOpen(true);
-            }}
-            className="btn btn-sm btn-outline-secondary"
-            style={{ fontSize: '0.75rem', padding: '2px 8px' }}
-          >
-            <ShieldCheck size={12} /> Permissions
-          </button>
-          <button
-            onClick={() => {
-              setSelectedOfficer(row);
-              setFullName(row.fullName);
-              setPhone(row.phone);
-              setEmail(row.email || '');
-              setBranchId(row.branchId);
-              setPermissions({ ...row.permissions });
-              setIsAddModalOpen(true);
-            }}
-            className="btn btn-sm btn-outline-primary"
-            style={{ fontSize: '0.75rem', padding: '2px 8px' }}
-          >
-            <Edit2 size={12} /> Edit
-          </button>
-        </div>
+        <ActionMenu
+          ariaLabel={`Actions for ${row.fullName}`}
+          items={[
+            {
+              label: 'Edit Officer',
+              icon: <Edit2 size={14} />,
+              tone: 'primary',
+              onClick: () => {
+                setSelectedOfficer(row);
+                setFullName(row.fullName);
+                setPhone(row.phone);
+                setEmail(row.email || '');
+                setBranchId(row.branchId);
+                setPermissions({ ...row.permissions });
+                setIsAddModalOpen(true);
+              },
+            },
+            {
+              label: 'Permissions',
+              icon: <ShieldCheck size={14} />,
+              onClick: () => {
+                setSelectedOfficer(row);
+                setPermissions({ ...row.permissions });
+                setIsPermModalOpen(true);
+              },
+            },
+            {
+              label: row.status === 'active' ? 'Deactivate' : 'Activate',
+              icon: row.status === 'active' ? <UserX size={14} /> : <UserCheck size={14} />,
+              tone: row.status === 'active' ? 'warning' : 'success',
+              dividerBefore: true,
+              onClick: () => handleToggleOfficerStatus(row),
+            },
+            {
+              label: 'Delete Officer',
+              icon: <Trash2 size={14} />,
+              tone: 'danger',
+              onClick: () => setOfficerToDelete(row),
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -337,6 +373,49 @@ export const OfficerManagement: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* Delete Officer Confirmation Modal */}
+      <Modal
+        isOpen={!!officerToDelete}
+        onClose={() => setOfficerToDelete(null)}
+        title="Confirm Officer Deletion"
+      >
+        <div className="p-2">
+          <div className="d-flex align-items-center gap-2 text-danger mb-3">
+            <AlertTriangle size={24} />
+            <h5 className="m-0" style={{ fontSize: '1rem', fontWeight: 700 }}>
+              Permanent Officer Deletion
+            </h5>
+          </div>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Are you sure you want to permanently delete Transport Officer{' '}
+            <strong className="text-dark">{officerToDelete?.fullName}</strong>?
+          </p>
+          <div className="p-2 bg-light rounded border mb-3" style={{ fontSize: '0.78rem' }}>
+            <div><strong>Depot Jurisdiction:</strong> {branches.find((b) => b.id === officerToDelete?.branchId)?.name || 'Central'}</div>
+            <div><strong>Contact:</strong> {officerToDelete?.phone}</div>
+            <div className="text-warning mt-2">
+              ⚠️ Any drivers currently supervised by this officer will be unassigned to standby.
+            </div>
+          </div>
+          <div className="d-flex justify-content-end gap-2">
+            <button
+              type="button"
+              onClick={() => setOfficerToDelete(null)}
+              className="btn btn-sm btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDeleteOfficer}
+              className="btn btn-sm btn-danger d-flex align-items-center gap-1"
+            >
+              <Trash2 size={13} /> Delete Officer
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

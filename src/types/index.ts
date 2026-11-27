@@ -76,6 +76,13 @@ export interface Driver extends BaseUser {
   licenceExpiryDate: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
+  emergencyContactRelationship?: string;
+  emergencyContactTown?: string;
+  guarantorName?: string;
+  guarantorGhanaCardNumber?: string;
+  guarantorTown?: string;
+  guarantorPhotoUrl?: string;
+  guarantorGhanaCardDocUrl?: string;
   assignedOfficerId: string;
   assignedVehicleId?: string;
   remittanceConfigId?: string;
