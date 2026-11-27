@@ -76,7 +76,7 @@ export const GeneralSettingsView: React.FC = () => {
             </div>
             <div className="col-6">
               <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                System Operating Timezone (SRD 10.4)
+                System Operating Timezone
               </label>
               <input
                 type="text"

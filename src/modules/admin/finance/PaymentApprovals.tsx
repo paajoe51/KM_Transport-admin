@@ -143,7 +143,7 @@ export const PaymentApprovals: React.FC = () => {
           <div className="alert alert-warning d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
             <AlertTriangle size={20} className="flex-shrink-0" />
             <div>
-              <strong>Financial Verification Requirement (SRD 12.5):</strong> A screenshot alone is NOT proof of receipt. Cross-reference the Telco MoMo transaction ID against official receiving statements (<strong>MTN 024 100 2000</strong>) before crediting.
+              <strong>Financial Verification Requirement:</strong> A screenshot alone is NOT proof of receipt. Cross-reference the Telco MoMo transaction ID against official receiving statements (<strong>MTN 024 100 2000</strong>) before crediting.
             </div>
           </div>
 
@@ -264,7 +264,7 @@ export const PaymentApprovals: React.FC = () => {
           <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
             <ShieldAlert size={20} className="flex-shrink-0" />
             <div>
-              <strong>Segregation of Duties Enforcement (SRD 12.7):</strong> Transport Officers cannot approve their own proxy collections. All physical cash collections recorded by officers require Administrator verification before crediting.
+              <strong>Segregation of Duties Enforcement:</strong> Transport Officers cannot approve their own proxy collections. All physical cash collections recorded by officers require Administrator verification before crediting.
             </div>
           </div>
 

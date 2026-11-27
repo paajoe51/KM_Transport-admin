@@ -206,7 +206,7 @@ export const SystemConfigView: React.FC = () => {
               </div>
               <div className="col-6">
                 <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                  System Operating Timezone (SRD 10.4)
+                  System Operating Timezone
                 </label>
                 <input
                   type="text"
@@ -322,7 +322,7 @@ export const SystemConfigView: React.FC = () => {
 
                 <div className="mb-3">
                   <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                    Secret Key (Masked for Security per SRD 18.1)
+                    Secret Key (Masked for Security)
                   </label>
                   <input
                     type="text"

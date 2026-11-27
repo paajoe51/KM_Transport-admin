@@ -181,7 +181,7 @@ export const ReportsAnalytics: React.FC = () => {
                 Individual Driver Statement Ledger
               </h2>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Official Debits, Credits and Closing Balance Statement (SRD 16.2)
+                Official Debits, Credits and Closing Balance Statement
               </div>
             </div>
 

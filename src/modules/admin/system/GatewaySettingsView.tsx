@@ -110,7 +110,7 @@ export const GatewaySettingsView: React.FC = () => {
 
               <div className="mb-3">
                 <label className="form-label" style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                  Secret Key (Masked for Security per SRD 18.1)
+                  Secret Key (Masked for Security)
                 </label>
                 <input
                   type="text"

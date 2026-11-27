@@ -59,7 +59,7 @@ export const ReversalsAdjustments: React.FC = () => {
       <div className="alert alert-danger d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
         <AlertTriangle size={20} className="flex-shrink-0" />
         <div>
-          <strong>Financial Audit Rule (SRD 12.11):</strong> Verified payments cannot be permanently deleted. Reversals restore driver obligations to unpaid status, recalculate balances, and preserve an immutable audit trail with justification.
+          <strong>Financial Audit Rule:</strong> Verified payments cannot be permanently deleted. Reversals restore driver obligations to unpaid status, recalculate balances, and preserve an immutable audit trail with justification.
         </div>
       </div>
 

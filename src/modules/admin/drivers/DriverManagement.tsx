@@ -1857,7 +1857,7 @@ export const DriverManagement: React.FC = () => {
           {activeTab === 'suspensions' && (
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
-                Suspension History (SRD 11.4)
+                Suspension History
               </div>
               <div className="p-3 bg-light rounded border" style={{ fontSize: '0.8rem' }}>
                 {selectedDriver.status === 'suspended' ? (

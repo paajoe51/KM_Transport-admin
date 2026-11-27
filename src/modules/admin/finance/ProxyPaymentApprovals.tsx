@@ -58,7 +58,7 @@ export const ProxyPaymentApprovals: React.FC = () => {
       <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
         <ShieldAlert size={20} className="flex-shrink-0" />
         <div>
-          <strong>Segregation of Duties Enforcement (SRD 12.7):</strong> Transport Officers cannot approve their own proxy payment recordings. All physical collections must be confirmed by an Administrator.
+          <strong>Segregation of Duties Enforcement:</strong> Transport Officers cannot approve their own proxy payment recordings. All physical collections must be confirmed by an Administrator.
         </div>
       </div>
 
