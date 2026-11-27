@@ -374,13 +374,6 @@ export const PaymentManagement: React.FC = () => {
       {/* TAB 3: REVERSALS & ADJUSTMENTS */}
       {activeTab === 'reversals' && (
         <div>
-          <div className="alert alert-danger d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
-            <AlertTriangle size={20} className="flex-shrink-0" />
-            <div>
-              <strong>Audit Safety Standard:</strong> Verified payments cannot be permanently deleted. Reversals restore obligations to unpaid status, recalculate driver balances, and preserve an immutable audit trail.
-            </div>
-          </div>
-
           {/* Active Verified Transactions */}
           <div className="kmtms-card mb-4">
             <div className="kmtms-card-header">

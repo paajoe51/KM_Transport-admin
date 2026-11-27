@@ -140,13 +140,6 @@ export const PaymentApprovals: React.FC = () => {
       {/* TAB 1: MANUAL MOMO VERIFICATION */}
       {activeTab === 'momo' && (
         <div>
-          <div className="alert alert-warning d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
-            <AlertTriangle size={20} className="flex-shrink-0" />
-            <div>
-              <strong>Financial Verification Requirement:</strong> A screenshot alone is NOT proof of receipt. Cross-reference the Telco MoMo transaction ID against official receiving statements (<strong>MTN 024 100 2000</strong>) before crediting.
-            </div>
-          </div>
-
           {momoQueue.length === 0 ? (
             <div className="kmtms-card p-5 text-center">
               <CheckCircle2 size={48} color="var(--success)" className="mx-auto mb-3" />
@@ -261,13 +254,6 @@ export const PaymentApprovals: React.FC = () => {
       {/* TAB 2: OFFICER PROXY PAYMENT APPROVALS */}
       {activeTab === 'proxy' && (
         <div>
-          <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
-            <ShieldAlert size={20} className="flex-shrink-0" />
-            <div>
-              <strong>Segregation of Duties Enforcement:</strong> Transport Officers cannot approve their own proxy collections. All physical cash collections recorded by officers require Administrator verification before crediting.
-            </div>
-          </div>
-
           {proxyQueue.length === 0 ? (
             <div className="kmtms-card p-5 text-center">
               <CheckCircle2 size={48} color="var(--success)" className="mx-auto mb-3" />

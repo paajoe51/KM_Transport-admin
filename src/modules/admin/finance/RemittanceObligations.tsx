@@ -254,11 +254,7 @@ export const RemittanceObligations: React.FC = () => {
       {/* TAB 2: DAILY RECONCILIATION */}
       {activeTab === 'reconciliation' && (
         <div>
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <div className="alert alert-info py-2 mb-0 flex-grow-1" style={{ fontSize: '0.825rem' }}>
-              <strong>Financial Integrity Standard:</strong> Unverified submissions ({formatGHS(pendingVerificationTotal)}) are strictly excluded from actual revenue. Net position balances verified inflows minus authorized reversals.
-            </div>
-
+          <div className="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3">
             <div className="d-flex align-items-center gap-2">
               <select
                 className="form-select form-select-sm"

@@ -60,14 +60,6 @@ export const ManualMomoVerification: React.FC = () => {
         </div>
       </div>
 
-      {/* Mandatory Verification Warning Banner */}
-      <div className="alert alert-warning d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
-        <AlertTriangle size={20} className="flex-shrink-0" />
-        <div>
-          <strong>Financial Verification Requirement:</strong> A screenshot alone is NOT proof of receipt. Administrators must cross-reference the Telco MoMo transaction ID against the official KM Company receiving account statement (<strong>MTN 024 100 2000</strong>) before crediting.
-        </div>
-      </div>
-
       {pendingQueue.length === 0 ? (
         <div className="kmtms-card p-5 text-center">
           <CheckCircle2 size={48} color="var(--success)" className="mx-auto mb-3" />

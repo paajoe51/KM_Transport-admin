@@ -55,14 +55,6 @@ export const ReversalsAdjustments: React.FC = () => {
         </div>
       </div>
 
-      {/* Safety Notice */}
-      <div className="alert alert-danger d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
-        <AlertTriangle size={20} className="flex-shrink-0" />
-        <div>
-          <strong>Financial Audit Rule:</strong> Verified payments cannot be permanently deleted. Reversals restore driver obligations to unpaid status, recalculate balances, and preserve an immutable audit trail with justification.
-        </div>
-      </div>
-
       {/* Verified Payments Available for Correction */}
       <div className="kmtms-card mb-4">
         <div className="kmtms-card-header">

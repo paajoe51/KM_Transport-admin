@@ -54,14 +54,6 @@ export const ProxyPaymentApprovals: React.FC = () => {
         </div>
       </div>
 
-      {/* Segregation of Duties Warning */}
-      <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: '0.85rem' }}>
-        <ShieldAlert size={20} className="flex-shrink-0" />
-        <div>
-          <strong>Segregation of Duties Enforcement:</strong> Transport Officers cannot approve their own proxy payment recordings. All physical collections must be confirmed by an Administrator.
-        </div>
-      </div>
-
       {proxyQueue.length === 0 ? (
         <div className="kmtms-card p-5 text-center">
           <CheckCircle2 size={48} color="var(--success)" className="mx-auto mb-3" />
